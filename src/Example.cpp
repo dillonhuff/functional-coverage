@@ -107,7 +107,7 @@ public:
   CallPrinter(const vector<string>& targets) : targetFileNames(targets) {}
   
   virtual void run(const MatchFinder::MatchResult &Result) {
-    if (const CallExpr* call = Result.Nodes.getNodeAs<clang::CallExpr>("call")) {
+    if (const CXXMemberCallExpr* call = Result.Nodes.getNodeAs<clang::CXXMemberCallExpr>("call")) {
 
       SourceRange r = call->getSourceRange();
       SourceLocation loc = r.getBegin();
@@ -124,6 +124,11 @@ public:
 
             if (pathName == fullPath) {
               errs() << "\t--- Call to arb pick at " << loc.printToString(*srcMgr) << "\n";
+
+              const Expr* e = call->getArg(0);
+              errs() << "\t first argument is: ";
+              e->dump();
+              errs() << "\n";
             }
           }
         }
