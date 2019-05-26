@@ -10,6 +10,7 @@
 #include "clang/Frontend/ASTConsumers.h"
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Frontend/CompilerInstance.h"
+#include "clang/Frontend/TextDiagnosticPrinter.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
 #include "clang/Tooling/Refactoring.h"
@@ -104,8 +105,11 @@ class CallPrinter : public MatchFinder::MatchCallback {
 public:
 
   vector<string> targetFileNames;
-
-  CallPrinter(const vector<string>& targets) : targetFileNames(targets) {}
+  std::map<std::string, tooling::Replacements>& fileReplaces;
+  
+  CallPrinter(const vector<string>& targets,
+              std::map<std::string, tooling::Replacements>& fileReplaces_) :
+    targetFileNames(targets), fileReplaces(fileReplaces_) {}
   
   virtual void run(const MatchFinder::MatchResult &Result) {
     if (const CXXMemberCallExpr* call = Result.Nodes.getNodeAs<clang::CXXMemberCallExpr>("call")) {
@@ -159,8 +163,11 @@ int main(int argc, const char **argv) {
   }
 
   clang::tooling::ClangTool iterateFunctions(db, sources);
-  //LoopPrinter printer(sources);
-  CallPrinter printer(sources);
+
+  auto Files = options.getSourcePathList();
+  tooling::RefactoringTool Tool(options.getCompilations(), Files);
+  
+  CallPrinter printer(sources, Tool.getReplacements());
   clang::ast_matchers::MatchFinder Finder;
   Finder.addMatcher(arbPickMatcher, &printer);
   int result = iterateFunctions.run(newFrontendActionFactory(&Finder).get());
@@ -170,27 +177,7 @@ int main(int argc, const char **argv) {
   lOptions.CPlusPlus17 = true;
   IdentifierTable Table(lOptions);
 
-  auto Files = options.getSourcePathList();
-  tooling::RefactoringTool Tool(options.getCompilations(), Files);
-
-  
-  // tooling::USRFindingAction FindingAction(SymbolOffsets, QualifiedNames, Force);
-  // Tool.run(tooling::newFrontendActionFactory(&FindingAction).get());
-  // const std::vector<std::vector<std::string>> &USRList =
-  //   FindingAction.getUSRList();
-  // const std::vector<std::string> &PrevNames = FindingAction.getUSRSpellings();
-  // if (PrintName) {
-  //   for (const auto &PrevName : PrevNames) {
-  //     outs() << "clang-rename found name: " << PrevName << '\n';
-  //   }
-  // }
-
-  // if (FindingAction.errorOccurred()) {
-  //   // Diagnostics are already issued at this point.
-  //   return 1;
-  // }
-
-  // // Perform the renaming.
+  // Perform the renaming.
   // tooling::RenamingAction RenameAction(NewNames, PrevNames, USRList,
   //                                      Tool.getReplacements(), PrintLocations);
   // std::unique_ptr<tooling::FrontendActionFactory> Factory =
@@ -199,45 +186,24 @@ int main(int argc, const char **argv) {
 
   // ExitCode = Tool.run(Factory.get());
 
-  // if (!ExportFixes.empty()) {
-  //   std::error_code EC;
-  //   llvm::raw_fd_ostream OS(ExportFixes, EC, llvm::sys::fs::F_None);
-  //   if (EC) {
-  //     llvm::errs() << "Error opening output file: " << EC.message() << '\n';
-  //     return 1;
-  //   }
+  // Write every file to stdout. Right now we just barf the files without any
+  // indication of which files start where, other than that we print the files
+  // in the same order we see them.
+  LangOptions DefaultLangOptions;
+  IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
+  TextDiagnosticPrinter DiagnosticPrinter(errs(), &*DiagOpts);
+  DiagnosticsEngine Diagnostics(
+                                IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()), &*DiagOpts,
+                                &DiagnosticPrinter, false);
+  auto &FileMgr = Tool.getFiles();
+  SourceManager Sources(Diagnostics, FileMgr);
+  Rewriter Rewrite(Sources, DefaultLangOptions);
 
-  //   // Export replacements.
-  //   tooling::TranslationUnitReplacements TUR;
-  //   const auto &FileToReplacements = Tool.getReplacements();
-  //   for (const auto &Entry : FileToReplacements)
-  //     TUR.Replacements.insert(TUR.Replacements.end(), Entry.second.begin(),
-  //                             Entry.second.end());
-
-  //   yaml::Output YAML(OS);
-  //   YAML << TUR;
-  //   OS.close();
-  //   return 0;
-  // }
-
-  // // Write every file to stdout. Right now we just barf the files without any
-  // // indication of which files start where, other than that we print the files
-  // // in the same order we see them.
-  // LangOptions DefaultLangOptions;
-  // IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
-  // TextDiagnosticPrinter DiagnosticPrinter(errs(), &*DiagOpts);
-  // DiagnosticsEngine Diagnostics(
-  //                               IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()), &*DiagOpts,
-  //                               &DiagnosticPrinter, false);
-  // auto &FileMgr = Tool.getFiles();
-  // SourceManager Sources(Diagnostics, FileMgr);
-  // Rewriter Rewrite(Sources, DefaultLangOptions);
-
-  // Tool.applyAllReplacements(Rewrite);
-  // for (const auto &File : Files) {
-  //   const auto *Entry = FileMgr.getFile(File);
-  //   const auto ID = Sources.getOrCreateFileID(Entry, SrcMgr::C_User);
-  //   Rewrite.getEditBuffer(ID).write(outs());
-  // }
+  Tool.applyAllReplacements(Rewrite);
+  for (const auto &File : Files) {
+    const auto *Entry = FileMgr.getFile(File);
+    const auto ID = Sources.getOrCreateFileID(Entry, SrcMgr::C_User);
+    Rewrite.getEditBuffer(ID).write(outs());
+  }
   
 }
