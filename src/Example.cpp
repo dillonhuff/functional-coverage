@@ -12,6 +12,7 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
+#include "clang/Tooling/Refactoring.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 
 #include <llvm/Support/FileSystem.h>
@@ -164,5 +165,79 @@ int main(int argc, const char **argv) {
   Finder.addMatcher(arbPickMatcher, &printer);
   int result = iterateFunctions.run(newFrontendActionFactory(&Finder).get());
 
-  // return result;
+  LangOptions lOptions;
+  lOptions.CPlusPlus = true;
+  lOptions.CPlusPlus17 = true;
+  IdentifierTable Table(lOptions);
+
+  auto Files = options.getSourcePathList();
+  tooling::RefactoringTool Tool(options.getCompilations(), Files);
+
+  
+  // tooling::USRFindingAction FindingAction(SymbolOffsets, QualifiedNames, Force);
+  // Tool.run(tooling::newFrontendActionFactory(&FindingAction).get());
+  // const std::vector<std::vector<std::string>> &USRList =
+  //   FindingAction.getUSRList();
+  // const std::vector<std::string> &PrevNames = FindingAction.getUSRSpellings();
+  // if (PrintName) {
+  //   for (const auto &PrevName : PrevNames) {
+  //     outs() << "clang-rename found name: " << PrevName << '\n';
+  //   }
+  // }
+
+  // if (FindingAction.errorOccurred()) {
+  //   // Diagnostics are already issued at this point.
+  //   return 1;
+  // }
+
+  // // Perform the renaming.
+  // tooling::RenamingAction RenameAction(NewNames, PrevNames, USRList,
+  //                                      Tool.getReplacements(), PrintLocations);
+  // std::unique_ptr<tooling::FrontendActionFactory> Factory =
+  //   tooling::newFrontendActionFactory(&RenameAction);
+  // int ExitCode;
+
+  // ExitCode = Tool.run(Factory.get());
+
+  // if (!ExportFixes.empty()) {
+  //   std::error_code EC;
+  //   llvm::raw_fd_ostream OS(ExportFixes, EC, llvm::sys::fs::F_None);
+  //   if (EC) {
+  //     llvm::errs() << "Error opening output file: " << EC.message() << '\n';
+  //     return 1;
+  //   }
+
+  //   // Export replacements.
+  //   tooling::TranslationUnitReplacements TUR;
+  //   const auto &FileToReplacements = Tool.getReplacements();
+  //   for (const auto &Entry : FileToReplacements)
+  //     TUR.Replacements.insert(TUR.Replacements.end(), Entry.second.begin(),
+  //                             Entry.second.end());
+
+  //   yaml::Output YAML(OS);
+  //   YAML << TUR;
+  //   OS.close();
+  //   return 0;
+  // }
+
+  // // Write every file to stdout. Right now we just barf the files without any
+  // // indication of which files start where, other than that we print the files
+  // // in the same order we see them.
+  // LangOptions DefaultLangOptions;
+  // IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
+  // TextDiagnosticPrinter DiagnosticPrinter(errs(), &*DiagOpts);
+  // DiagnosticsEngine Diagnostics(
+  //                               IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()), &*DiagOpts,
+  //                               &DiagnosticPrinter, false);
+  // auto &FileMgr = Tool.getFiles();
+  // SourceManager Sources(Diagnostics, FileMgr);
+  // Rewriter Rewrite(Sources, DefaultLangOptions);
+
+  // Tool.applyAllReplacements(Rewrite);
+  // for (const auto &File : Files) {
+  //   const auto *Entry = FileMgr.getFile(File);
+  //   const auto ID = Sources.getOrCreateFileID(Entry, SrcMgr::C_User);
+  //   Rewrite.getEditBuffer(ID).write(outs());
+  // }
+  
 }

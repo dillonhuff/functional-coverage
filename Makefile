@@ -53,6 +53,7 @@ CLANG_LIBS := \
 	-lclangCodeGen \
 	-lclangDriver \
 	-lclangEdit \
+	-lclangFormat \
 	-lclangFrontend \
 	-lclangFrontendTool \
 	-lclangLex \
@@ -68,6 +69,8 @@ CLANG_LIBS := \
 	-lclangSerialization \
 	-lclangToolingCore \
 	-lclangTooling \
+	-lclangToolingRefactor \
+	-lclangToolingInclusions \
 	-Wl,
 
 # Internal paths in this project: where to find sources, and where to put
