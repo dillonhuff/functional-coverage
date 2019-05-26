@@ -57,7 +57,6 @@ bool hasPrefix(const std::string str, const std::string prefix) {
 class LoopPrinter : public MatchFinder::MatchCallback {
 public:
 
-  
   vector<string> targetFileNames;
 
   LoopPrinter(const vector<string>& targets) : targetFileNames(targets) {}
@@ -68,13 +67,23 @@ public:
 
       SourceRange r = FS->getSourceRange();
       SourceLocation loc = r.getBegin();
+      SourceManager* const srcMgr = Result.SourceManager;
       
-      if (FS->isMain()) {
-        errs() << "Found main!\n";
-        string fileLoc = Result.SourceManager->getFilename(loc);
-        errs() << "fileLoc = " << fileLoc << "\n";
-        if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
-          errs() << "File loc = " << fileLoc << "\n";
+      //if (FS->isMain()) {
+      if (loc.isFileID()) {
+        //errs() << "Found main!\n";
+        FileID fileID = srcMgr->getFileID(loc);
+        const FileEntry* entry = srcMgr->getFileEntryForID(fileID);
+        if (entry != nullptr) {
+          string pathName = entry->tryGetRealPathName();
+        
+          for (auto& srcFile : targetFileNames) {
+            string fullPath = makeAbsolute(srcFile);
+
+            if (pathName == fullPath) {
+              cout << "\t--- Function " << string(FS->getName()) << " is in target source" << endl;
+            }
+          }
         }
       }
 
