@@ -129,7 +129,7 @@ public:
 
             if (pathName == fullPath) {
               errs() << "\t--- Call to arb pick at " << loc.printToString(*srcMgr) << "\n";
-              auto err = fileReplaces[srcFile].add(Replacement(*srcMgr, loc, 10, "/* REPLACEMENT for Arbiter::pick */"));
+              auto err = fileReplaces[srcFile].add(Replacement(*srcMgr, loc, 1, "/* REPLACEMENT for Arbiter::pick */"));
               errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);
               errs() << "\t first argument is: ";
@@ -200,6 +200,7 @@ int main(int argc, const char **argv) {
   SourceManager Sources(Diagnostics, FileMgr);
   Rewriter Rewrite(Sources, DefaultLangOptions);
 
+  errs() << "# of replacements in tool = " << Tool.getReplacements().size() << "\n";
   Tool.applyAllReplacements(Rewrite);
   for (const auto &File : Files) {
     const auto *Entry = FileMgr.getFile(File);
