@@ -55,12 +55,24 @@ int main(int argc, const char **argv) {
 
   CommonOptionsParser options(argc, argv, MyToolCategory);
   const auto& sources = options.getSourcePathList();
-  //auto& db = options.getCompilations();
+  auto& db = options.getCompilations();
 
   cout << "Sources" << endl;
   for (string src : sources) {
     cout << "  " << src << endl;
   }
+
+  cout << "Compile commands " << endl;
+  for (CompileCommand cmd : db.getAllCompileCommands()) {
+    cout << "Dir = " << cmd.Directory << endl;
+    cout << "Filename = " << cmd.Filename << endl;
+    cout << "CommandLine = " << endl;
+    for (auto cmd : cmd.CommandLine) {
+      cout << "  " << cmd << endl;
+    }
+  }
+
+  
   // std::string errMsg = "err";
   // std::string dir = "/Users/dillon/CWorkspace/git/";
   // auto cdb = CompilationDatabase::loadFromDirectory(dir, errMsg);
