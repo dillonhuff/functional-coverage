@@ -23,4 +23,6 @@ void testNoInputs() {
 }
 
 int main() {
+  testNoInputs();
+  cout << "All tests passed" << endl;
 }

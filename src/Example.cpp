@@ -27,6 +27,7 @@ using namespace llvm;
 static cl::OptionCategory MyToolCategory("My tool options");
 static int numForLoops = 0;
 DeclarationMatcher LoopMatcher = functionDecl().bind("func");
+StatementMatcher arbPickMatcher = cxxMemberCallExpr(callee(cxxMethodDecl(hasName("pick")))).bind("call");
   // forStmt(hasLoopInit(binaryOperator(hasOperatorName("="))),
   // 	  hasIncrement(unaryOperator(hasOperatorName("--")))).bind("forLoop");
 
@@ -62,7 +63,6 @@ public:
   LoopPrinter(const vector<string>& targets) : targetFileNames(targets) {}
   
   virtual void run(const MatchFinder::MatchResult &Result) {
-    //errs() << "RUN\n";
     if (const FunctionDecl *FS = Result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
 
       SourceRange r = FS->getSourceRange();
@@ -96,22 +96,6 @@ public:
         }
       }
 
-      // string fileLoc = Result.SourceManager->getFilename(loc);
-      // if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
-      //   errs() << "File loc = " << fileLoc << "\n";
-      //   for (auto& srcFile : targetFileNames) {
-      //     string fullPath = makeAbsolute(srcFile);
-      //     errs() << "fullPath = " << fullPath << "\n";
-      //     if (fileLoc == makeAbsolute(srcFile)) {
-      //       errs() << "File = " << fileLoc << "\n";
-      //       errs() << "Source start = " << (r.getBegin()).printToString(*(Result.SourceManager)) << "\n";
-
-      //       if (FS->hasBody()) {
-      //         numForLoops++;
-      //       }
-      //     }
-      //   }
-      // }
     }
   }
 };
@@ -137,19 +121,10 @@ int main(int argc, const char **argv) {
   }
 
   clang::tooling::ClangTool iterateFunctions(db, sources);
-  // ClangExpand::Search search;
-  // auto result = search.run(db, sources, {});
-  // std::string errMsg = "err";
-  // std::string dir = "/Users/dillon/CWorkspace/git/";
-  // auto cdb = CompilationDatabase::loadFromDirectory(dir, errMsg);
-  // auto files = cdb->getAllFiles();
-  // ClangTool Tool(*(cdb.get()), cdb->getAllFiles());
-
   LoopPrinter printer(sources);
   clang::ast_matchers::MatchFinder Finder;
   Finder.addMatcher(LoopMatcher, &printer);
-
   int result = iterateFunctions.run(newFrontendActionFactory(&Finder).get());
-  cout << "Number of for loops: " << numForLoops << endl;
+
   // return result;
 }
