@@ -76,8 +76,6 @@ int main(int argc, const char **argv) {
   clang::tooling::ClangTool iterateFunctions(db, sources);
   // ClangExpand::Search search;
   // auto result = search.run(db, sources, {});
-  
-  
   // std::string errMsg = "err";
   // std::string dir = "/Users/dillon/CWorkspace/git/";
   // auto cdb = CompilationDatabase::loadFromDirectory(dir, errMsg);
