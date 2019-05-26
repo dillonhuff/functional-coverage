@@ -1,0 +1,7 @@
+[
+    {
+        "command": "clang++ -c -fno-rtti -g -I/Users/dillon/CppWorkspace/llvm/include -I/Users/dillon/CppWorkspace/build/include -I -fPIC -fvisibility-inlines-hidden -W -pedantic -std=c++11 -fno-exceptions -fno-rtti -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/Users/dillon/CppWorkspace/llvm/tools/clang/include -I/Users/dillon/CppWorkspace/build/tools/clang/include -o build/libtooling_example src/Example.cpp", 
+        "directory": "/Users/dillon/CppWorkspace/clang-tools/functional-coverage/example-files",
+        "file": "/Users/dillon/CppWorkspace/clang-tools/functional-coverage/example-files/example.cpp"
+    }
+]
