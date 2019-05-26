@@ -76,33 +76,42 @@ public:
         const FileEntry* entry = srcMgr->getFileEntryForID(fileID);
         if (entry != nullptr) {
           string pathName = entry->tryGetRealPathName();
-        
+
+          bool inTools = false;
+          if (hasPrefix(pathName, "/Users/dillon/CppWorkspace/clang-tools")) {
+            errs() << "\tFunction " << string(FS->getName()) << " in file " << pathName << " is in clang tools\n";
+            inTools = true;
+          }
+          
           for (auto& srcFile : targetFileNames) {
             string fullPath = makeAbsolute(srcFile);
 
+            if (inTools) {
+              errs() << "pathName = " << pathName << ", == " << fullPath << " ? " << (pathName == fullPath) << "\n";
+            }
             if (pathName == fullPath) {
-              cout << "\t--- Function " << string(FS->getName()) << " is in target source" << endl;
+              errs() << "\t--- Function " << string(FS->getName()) << " is in target source\n";
             }
           }
         }
       }
 
-      string fileLoc = Result.SourceManager->getFilename(loc);
-      if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
-        errs() << "File loc = " << fileLoc << "\n";
-        for (auto& srcFile : targetFileNames) {
-          string fullPath = makeAbsolute(srcFile);
-          errs() << "fullPath = " << fullPath << "\n";
-          if (fileLoc == makeAbsolute(srcFile)) {
-            errs() << "File = " << fileLoc << "\n";
-            errs() << "Source start = " << (r.getBegin()).printToString(*(Result.SourceManager)) << "\n";
+      // string fileLoc = Result.SourceManager->getFilename(loc);
+      // if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
+      //   errs() << "File loc = " << fileLoc << "\n";
+      //   for (auto& srcFile : targetFileNames) {
+      //     string fullPath = makeAbsolute(srcFile);
+      //     errs() << "fullPath = " << fullPath << "\n";
+      //     if (fileLoc == makeAbsolute(srcFile)) {
+      //       errs() << "File = " << fileLoc << "\n";
+      //       errs() << "Source start = " << (r.getBegin()).printToString(*(Result.SourceManager)) << "\n";
 
-            if (FS->hasBody()) {
-              numForLoops++;
-            }
-          }
-        }
-      }
+      //       if (FS->hasBody()) {
+      //         numForLoops++;
+      //       }
+      //     }
+      //   }
+      // }
     }
   }
 };
@@ -116,9 +125,6 @@ int main(int argc, const char **argv) {
   auto& db = options.getCompilations();
 
   cout << "Sources" << endl;
-  for (string src : sources) {
-    cout << "  " << src << endl;
-  }
 
   cout << "Compile commands " << endl;
   for (CompileCommand cmd : db.getAllCompileCommands()) {
