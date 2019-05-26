@@ -28,7 +28,8 @@ static cl::OptionCategory MyToolCategory("My tool options");
 static int numForLoops = 0;
 DeclarationMatcher LoopMatcher = functionDecl().bind("func");
 StatementMatcher arbPickMatcher = cxxMemberCallExpr(callee(cxxMethodDecl(hasName("pick")))).bind("call");
-  // forStmt(hasLoopInit(binaryOperator(hasOperatorName("="))),
+
+// forStmt(hasLoopInit(binaryOperator(hasOperatorName("="))),
   // 	  hasIncrement(unaryOperator(hasOperatorName("--")))).bind("forLoop");
 
 //whileStmt().bind("whileLoop"); //whileStmt().bind("whileLoop");//hasCondition(binaryOperator(hasOperatorName("<")))).bind("whileLoop"); //forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoop");
@@ -69,9 +70,7 @@ public:
       SourceLocation loc = r.getBegin();
       SourceManager* const srcMgr = Result.SourceManager;
       
-      //if (FS->isMain()) {
       if (loc.isFileID()) {
-        //errs() << "Found main!\n";
         FileID fileID = srcMgr->getFileID(loc);
         const FileEntry* entry = srcMgr->getFileEntryForID(fileID);
         if (entry != nullptr) {
@@ -100,6 +99,39 @@ public:
   }
 };
 
+class CallPrinter : public MatchFinder::MatchCallback {
+public:
+
+  vector<string> targetFileNames;
+
+  CallPrinter(const vector<string>& targets) : targetFileNames(targets) {}
+  
+  virtual void run(const MatchFinder::MatchResult &Result) {
+    if (const CallExpr* call = Result.Nodes.getNodeAs<clang::CallExpr>("call")) {
+
+      SourceRange r = call->getSourceRange();
+      SourceLocation loc = r.getBegin();
+      SourceManager* const srcMgr = Result.SourceManager;
+      
+      if (loc.isFileID()) {
+        FileID fileID = srcMgr->getFileID(loc);
+        const FileEntry* entry = srcMgr->getFileEntryForID(fileID);
+        if (entry != nullptr) {
+          string pathName = entry->tryGetRealPathName();
+
+          for (auto& srcFile : targetFileNames) {
+            string fullPath = makeAbsolute(srcFile);
+
+            if (pathName == fullPath) {
+              errs() << "\t--- Call to arb pick at " << loc.printToString(*srcMgr) << "\n";
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 int main(int argc, const char **argv) {
 
   using namespace clang::tooling;  // NOLINT(build/namespaces)
@@ -121,9 +153,10 @@ int main(int argc, const char **argv) {
   }
 
   clang::tooling::ClangTool iterateFunctions(db, sources);
-  LoopPrinter printer(sources);
+  //LoopPrinter printer(sources);
+  CallPrinter printer(sources);
   clang::ast_matchers::MatchFinder Finder;
-  Finder.addMatcher(LoopMatcher, &printer);
+  Finder.addMatcher(arbPickMatcher, &printer);
   int result = iterateFunctions.run(newFrontendActionFactory(&Finder).get());
 
   // return result;
