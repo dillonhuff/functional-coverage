@@ -32,17 +32,18 @@ DeclarationMatcher LoopMatcher = functionDecl().bind("func");
 class LoopPrinter : public MatchFinder::MatchCallback {
 public:
   virtual void run(const MatchFinder::MatchResult &Result) {
-    errs() << "RUN\n";
+    //errs() << "RUN\n";
     if (const FunctionDecl *FS = Result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
       if (FS->hasBody()) {
-	clang::LangOptions LangOpts;
-	LangOpts.CPlusPlus = true;
-	clang::PrintingPolicy Policy(LangOpts);
-	std::string TypeS;
-	llvm::raw_string_ostream s(TypeS);
-	//FS->printPretty(errs(), 0, Policy);
-	FS->dump();
-	errs() << "\n";
+        // errs() << "found function\n";
+	// clang::LangOptions LangOpts;
+	// LangOpts.CPlusPlus = true;
+	// clang::PrintingPolicy Policy(LangOpts);
+	// std::string TypeS;
+	// llvm::raw_string_ostream s(TypeS);
+	FS->printPretty(errs(), 0, Policy);
+	//FS->dump();
+	//errs() << "\n";
 	numForLoops++;
       }
     }
@@ -72,6 +73,10 @@ int main(int argc, const char **argv) {
     }
   }
 
+  clang::tooling::ClangTool iterateFunctions(db, sources);
+  // ClangExpand::Search search;
+  // auto result = search.run(db, sources, {});
+  
   
   // std::string errMsg = "err";
   // std::string dir = "/Users/dillon/CWorkspace/git/";
@@ -79,11 +84,11 @@ int main(int argc, const char **argv) {
   // auto files = cdb->getAllFiles();
   // ClangTool Tool(*(cdb.get()), cdb->getAllFiles());
 
-  // LoopPrinter Printer;
-  // MatchFinder Finder;
-  // Finder.addMatcher(LoopMatcher, &Printer);
+  LoopPrinter printer;
+  clang::ast_matchers::MatchFinder Finder;
+  Finder.addMatcher(LoopMatcher, &printer);
 
-  // int result = Tool.run(newFrontendActionFactory(&Finder).get());
-  // cout << "Number of for loops: " << numForLoops << endl;
+  int result = iterateFunctions.run(newFrontendActionFactory(&Finder).get());
+  cout << "Number of for loops: " << numForLoops << endl;
   // return result;
 }

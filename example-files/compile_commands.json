@@ -1,7 +1,7 @@
 [
     {
-        "command": "clang++ ./example-files/example.cpp -o example -c",
-        "directory": "/Users/dillon/CppWorkspace/clang-tools/functional-coverage/example-files",
+        "command": "clang++ -c ./example-files/example.cpp",
+        "directory": "/Users/dillon/CppWorkspace/clang-tools/functional-coverage/",
         "file": "/Users/dillon/CppWorkspace/clang-tools/functional-coverage/example-files/example.cpp"
     }
 ]
