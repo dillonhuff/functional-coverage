@@ -129,7 +129,8 @@ public:
 
             if (pathName == fullPath) {
               errs() << "\t--- Call to arb pick at " << loc.printToString(*srcMgr) << "\n";
-
+              auto err = fileReplaces[srcFile].add(Replacement(*srcMgr, loc, 10, "/* REPLACEMENT for Arbiter::pick */"));
+              errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);
               errs() << "\t first argument is: ";
               e->dump();
