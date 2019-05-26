@@ -65,9 +65,18 @@ public:
   virtual void run(const MatchFinder::MatchResult &Result) {
     //errs() << "RUN\n";
     if (const FunctionDecl *FS = Result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
-      SourceRange r = FS->getSourceRange();
 
+      SourceRange r = FS->getSourceRange();
       SourceLocation loc = r.getBegin();
+      
+      if (FS->isMain()) {
+        errs() << "Found main!\n";
+        string fileLoc = Result.SourceManager->getFilename(loc);
+        errs() << "fileLoc = " << fileLoc << "\n";
+        if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
+          errs() << "File loc = " << fileLoc << "\n";
+        }
+      }
 
       string fileLoc = Result.SourceManager->getFilename(loc);
       if (hasPrefix(fileLoc, "/Users/dillon/CppWorkspace/clang-tools")) {
