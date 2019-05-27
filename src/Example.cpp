@@ -136,8 +136,10 @@ public:
               
               unsigned extent = endLocInfo.second - startLocInfo.second + 1;
               //errs() << "Src range begin = " << srcRange.getBegin().printToString(*srcMgr) << " to " << srcRange.getEnd().printToString(*srcMgr) << "\n";
-              auto err = fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, "/* REPLACEMENT for Arbiter::pick */"));
-              errs() << "Err value = " << err << "\n";
+              //auto err = fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, "/* REPLACEMENT for Arbiter::pick */"));
+              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second, 0, "SAMPLE_1("));
+              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, ")"));
+              //errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);
               errs() << "\t first argument is: ";
               e->dump();
