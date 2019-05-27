@@ -137,7 +137,16 @@ public:
               unsigned extent = endLocInfo.second - startLocInfo.second + 1;
               //errs() << "Src range begin = " << srcRange.getBegin().printToString(*srcMgr) << " to " << srcRange.getEnd().printToString(*srcMgr) << "\n";
               //auto err = fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, "/* REPLACEMENT for Arbiter::pick */"));
-              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second, 0, "SAMPLE_1("));
+
+              const Expr* firstArg = call->getArg(0);
+              string argText;
+              llvm::raw_string_ostream out(argText);
+              auto& context = *Result.Context;
+              PrintingPolicy policy(context.getPrintingPolicy());
+              policy.adjustForCPlusPlus();
+              firstArg->printPretty(out, nullptr, policy);
+
+              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second, 0, "SAMPLE_1(checkValue(" + out.str() + "), "));
               fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, ")"));
               //errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);
@@ -186,15 +195,6 @@ int main(int argc, const char **argv) {
   lOptions.CPlusPlus = true;
   lOptions.CPlusPlus17 = true;
   IdentifierTable Table(lOptions);
-
-  // Perform the renaming.
-  // tooling::RenamingAction RenameAction(NewNames, PrevNames, USRList,
-  //                                      Tool.getReplacements(), PrintLocations);
-  // std::unique_ptr<tooling::FrontendActionFactory> Factory =
-  //   tooling::newFrontendActionFactory(&RenameAction);
-  // int ExitCode;
-
-  // ExitCode = Tool.run(Factory.get());
 
   // Write every file to stdout. Right now we just barf the files without any
   // indication of which files start where, other than that we print the files
