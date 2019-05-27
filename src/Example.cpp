@@ -129,8 +129,14 @@ public:
 
             if (pathName == fullPath) {
               errs() << "\t--- Call to arb pick at " << loc.printToString(*srcMgr) << "\n";
-              //auto err = fileReplaces[pathName].add(Replacement(*srcMgr, loc, 1, "/* REPLACEMENT for Arbiter::pick */"));
-              auto err = fileReplaces[pathName].add(Replacement(pathName, 0, 100, "/* REPLACEMENT for Arbiter::pick */"));
+              //PresumedLoc presumedStart = srcMgr->getPresumedLoc(*this);
+              //CharSourceRange srcRange = srcMgr->getExpansionRange(r);
+              pair<FileID, unsigned> startLocInfo = srcMgr->getDecomposedExpansionLoc(r.getBegin());
+              pair<FileID, unsigned> endLocInfo = srcMgr->getDecomposedExpansionLoc(r.getEnd());
+              
+              unsigned extent = endLocInfo.second - startLocInfo.second + 1;
+              //errs() << "Src range begin = " << srcRange.getBegin().printToString(*srcMgr) << " to " << srcRange.getEnd().printToString(*srcMgr) << "\n";
+              auto err = fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, "/* REPLACEMENT for Arbiter::pick */"));
               errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);
               errs() << "\t first argument is: ";
