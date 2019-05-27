@@ -146,7 +146,9 @@ public:
               policy.adjustForCPlusPlus();
               firstArg->printPretty(out, nullptr, policy);
 
-              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second, 0, "SAMPLE_1(checkValue(" + out.str() + "), "));
+              string checkFuncName = "arb_mask_nonzero";
+              string eventName = checkFuncName + "_" + loc.printToString(*srcMgr);
+              fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second, 0, "SAMPLE(" + checkFuncName + "(" + out.str() + "), \"" + eventName + "\", "));
               fileReplaces[pathName].add(Replacement(pathName, startLocInfo.second + extent, 0, ")"));
               //errs() << "Err value = " << err << "\n";
               const Expr* e = call->getArg(0);

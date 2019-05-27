@@ -35,12 +35,12 @@ bool arb_mask_nonzero(const MaskType& val) {
   return val != 0;
 }
 
-#define SAMPLE(test, eventName, call) (covModel->sample((test), (eventName)); (call))
+#define SAMPLE(test, eventName, call) (call); (covModel->sample((test), (eventName)));
 
 void testNoInputs() {
   Arbiter<4> arb;
   Arbiter<4>::Mask m = 0;
-  Arbiter<4>::Mask res = arb.pick(m);
+  Arbiter<4>::Mask res = SAMPLE(arb_mask_nonzero(m), "arb_mask_nonzero_tb.cpp:43:26", arb.pick(m));
 
   assert(res == 0);
 }
